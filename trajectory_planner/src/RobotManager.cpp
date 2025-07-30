@@ -38,7 +38,12 @@ RobotManager::RobotManager(ros::NodeHandle *n)
     isWalkingWithKeyboard = false;
 
     int temp_ratio[12] = {100, 100, 50, 80, 100, 100, 50, 80, 120, 120, 120, 120};
-    int temp_home_abs[12] = {121482, 139938, 128809, 9439, 134584, 130539, 144401, 146783, 131590, 62400, 130202, 141072};
+    // int temp_home_abs[12] = {122378, 141666, 134313, 8607, 132216, 130155, 144401, 146847, 125254, 63296, 130474, 145216};
+    // int temp_home_abs[12] = {122378, 141090, 134441, 11167, 132216, 130155, 145297, 146399, 124358, 63552, 130474, 145216};
+    //int temp_home_abs[12] = {122378, 141090, 135273, 11167, 132216, 130155, 145297, 146399, 124614, 63552, 130474, 145216};
+    // int temp_home_abs[12] = {123722, 141090, 135273, 11167, 136504, 131243, 146513, 146399, 124614, 63552, 129130, 141904};
+    int temp_home_abs[12] = {123722, 166000, 135273, 11167, 132676, 131435, 146513, 146399, 124614, 63552, 132714, 141488};
+
     int temp_abs_high[12] = {108426, 119010, 89733, 136440, 71608, 102443, 119697, 82527, 168562, 160000, 191978, 111376};
     int temp_abs_low[12] = {145354, 183778, 194153, 7000, 203256, 160491, 150225, 180000, 61510, 61000, 61482, 172752};
     int temp_abs2inc_dir[12] = {1, 1, -1, -1, -1, 1, 1, 1, -1, 1, 1, 1};
@@ -537,7 +542,6 @@ bool RobotManager::ankleHome(bool is_left, int roll_dest, int pitch_dest)
     ros::Rate rate_(200);
     while (abs(abs(absData_[inner]) - roll_dest) > 100)
     {
-
         if (abs(absData_[inner]) < 262144)
         {
 
@@ -1007,12 +1011,18 @@ void RobotManager::keyboardHandler(const std_msgs::Int32 &msg)
     double offset = 0.01;
     bool is_config = false;
 
+    double init_com_pos[3] = {0, 0, 0.71};
+    double init_com_orient[3] = {0, 0, 0};
     double final_com_pos[3] = {0, 0, COM_height};
     double final_com_orient[3] = {0, 0, 0};
 
+    double init_lankle_pos[3] = {0, 0.0975, 0};
+    double init_lankle_orient[3] = {0, 0, 0};
     double final_lankle_pos[3] = {0, 0.0975, 0};
     double final_lankle_orient[3] = {0, 0, 0};
 
+    double init_rankle_pos[3] = {0, -0.0975, 0};
+    double init_rankle_orient[3] = {0, 0, 0};
     double final_rankle_pos[3] = {0, -0.0975, 0};
     double final_rankle_orient[3] = {0, 0, 0};
 
@@ -1040,8 +1050,8 @@ void RobotManager::keyboardHandler(const std_msgs::Int32 &msg)
         switch (command)
         {
         case 119: // w: move forward
-            step_count = 2;
-            step_length = 0.15;
+            step_count = 4;
+            step_length = 0.16;
             theta = 0.0;
             robot->trajGen(step_count, t_step, alpha, t_double_support, COM_height, step_length, 
                            step_width, dt, theta, ankle_height, step_height, slope, offset, is_config);
@@ -1063,7 +1073,7 @@ void RobotManager::keyboardHandler(const std_msgs::Int32 &msg)
             break;
 
         case 97: // a: turn left
-            step_count = 2;
+            step_count = 4;
             step_length = -0.15;
             theta = 0.17;
             robot->trajGen(step_count, t_step, alpha, t_double_support, COM_height, step_length, 
@@ -1074,13 +1084,61 @@ void RobotManager::keyboardHandler(const std_msgs::Int32 &msg)
             break;
 
         case 100: // d: turn right
-            step_count = 2;
+            step_count = 4;
             step_length = 0.15;
             theta = 0.17;
             robot->trajGen(step_count, t_step, alpha, t_double_support, COM_height, step_length, 
                            step_width, dt, theta, ankle_height, step_height, slope, offset, is_config);
             // trajSize_ = robot->OnlineDCMTrajGen(step_count, t_step, alpha, t_double_support, COM_height, step_length, 
             //                                     step_width, dt, theta, ankle_height, step_height, slope, offset, is_config);
+            isKeyboardTrajectoryEnabled = false;
+            break;
+
+        case 104: // h: in place turn right
+            step_count = 4;  // 14 steps for 90 degrees rotation
+            step_length = 0.02;
+            theta = 0.10;
+            robot->trajGen(step_count, t_step, alpha, t_double_support, COM_height, step_length, 
+                           step_width, dt, theta, ankle_height, step_height, slope, offset, is_config);
+            isKeyboardTrajectoryEnabled = false;
+            break;
+
+        case 103: // g: in place turn left
+            step_count = 4;  // 14 steps for 90 degrees rotation
+            step_length = -0.02;
+            theta = 0.10;
+            robot->trajGen(step_count, t_step, alpha, t_double_support, COM_height, step_length, 
+                           step_width, dt, theta, ankle_height, step_height, slope, offset, is_config);
+            isKeyboardTrajectoryEnabled = false;
+            break;
+
+        case 109: // m: height reduction
+            step_count = 2;
+            step_length = 0.15;
+            theta = 0.0;
+            robot->trajGen(step_count, t_step, alpha, t_double_support, COM_height, step_length, 
+                           step_width, dt, theta, ankle_height, step_height, slope, offset, is_config);
+
+            init_com_pos[2] = 0.68;
+            final_com_pos[2] = 0.64;
+            robot->generalTrajGen(dt, 2, init_com_pos, final_com_pos, init_com_orient, final_com_orient,
+                          init_lankle_pos, final_lankle_pos, init_lankle_orient, final_lankle_orient,
+                          init_rankle_pos, final_rankle_pos, init_rankle_orient, final_rankle_orient);
+
+            step_count = 2;
+            step_length = 0.15;
+            theta = 0.0;
+            COM_height = 0.64;
+            robot->trajGen(step_count, t_step, alpha, t_double_support, COM_height, step_length, 
+                           step_width, dt, theta, ankle_height, step_height, slope, offset, is_config);
+            
+            init_com_pos[2] = 0.64;
+            final_com_pos[2] = 0.68;
+            robot->generalTrajGen(dt, 2, init_com_pos, final_com_pos, init_com_orient, final_com_orient,
+                          init_lankle_pos, final_lankle_pos, init_lankle_orient, final_lankle_orient,
+                          init_rankle_pos, final_rankle_pos, init_rankle_orient, final_rankle_orient);
+                          
+            COM_height = 0.68;
             isKeyboardTrajectoryEnabled = false;
             break;
 
@@ -1321,11 +1379,36 @@ MatrixXd RobotManager::scenario_target_R(string scenario, int i, VectorXd ee_pos
     R_target_r.resize(3, 3);
     q_ra.resize(7);
     q_init_r.resize(7);
+
     if (scenario == "shakeHands")
     {
         r_middle_r << 0.35, -0.1, -0.2; // shakehands
         r_target_r << 0.3, -0.05, -0.35;
         R_target_r = hand_func_R.rot(2, -65 * M_PI / 180, 3);
+    }
+    else if (scenario == "Perfect")
+    {
+        r_middle_r << 0.15, -0.1, -0.3; // Perfect
+        r_target_r << 0.25, -0.05, -0.25;
+        R_target_r = hand_func_R.rot(2, -90 * M_PI / 180, 3) * hand_func_R.rot(3, 90 * M_PI / 180, 3)* hand_func_R.rot(1, -45 * M_PI / 180, 3);
+    }
+    else if (scenario == "Punching")
+    {
+        r_middle_r << 0.15, -0.1, -0.1; // Punching
+        r_target_r << 0.35, 0.2, 0.1;
+        R_target_r = hand_func_R.rot(3, 90 * M_PI / 180, 3) * hand_func_R.rot(1, -40 * M_PI / 180, 3);
+    }
+    else if (scenario == "Pointing")
+    {
+        r_middle_r << 0.25, -0.1, -0.1; // Pointing
+        r_target_r << 0.45, 0.05, 0;
+        R_target_r = hand_func_R.rot(3, 90 * M_PI / 180, 3) * hand_func_R.rot(1, -65 * M_PI / 180, 3);
+    }
+    else if (scenario == "Like")
+    {
+        r_middle_r << 0.15, -0.1, -0.3; // Like
+        r_target_r << 0.25, -0.05, -0.25;
+        R_target_r = hand_func_R.rot(2, -90 * M_PI / 180, 3);
     }
     else if (scenario == "Respect")
     {
@@ -1373,7 +1456,6 @@ MatrixXd RobotManager::scenario_target_R(string scenario, int i, VectorXd ee_pos
             phi_target_r = hand0_r.phi_target;
             hand0_r.HO_FK_right_palm(q_ra);
             cout << r_start_r << endl;
-            ;
         }
         else
         {
@@ -1408,6 +1490,30 @@ MatrixXd RobotManager::scenario_target_L(string scenario, int i, VectorXd ee_pos
         r_middle_l << 0.35, 0.05, -0.2; // shakehands
         r_target_l << 0.3, 0.05, -0.35;
         R_target_l = hand_func_L.rot(2, -65 * M_PI / 180, 3);
+    }
+    else if (scenario == "Perfect")
+    {
+        r_middle_r << 0.15, 0.1, -0.3; // Perfect
+        r_target_r << 0.25, 0.05, -0.25;
+        R_target_r = hand_func_R.rot(2, -90 * M_PI / 180, 3) * hand_func_R.rot(3, 90 * M_PI / 180, 3)* hand_func_R.rot(1, -45 * M_PI / 180, 3);
+    }
+    else if (scenario == "Punching")
+    {
+        r_middle_r << 0.15, 0.1, -0.1; // Punching
+        r_target_r << 0.35, -0.2, 0.1;
+        R_target_r = hand_func_R.rot(3, 90 * M_PI / 180, 3) * hand_func_R.rot(1, -40 * M_PI / 180, 3);
+    }
+    else if (scenario == "Pointing")
+    {
+        r_middle_r << 0.25, 0.1, -0.1; // Pointing
+        r_target_r << 0.45, -0.05, 0;
+        R_target_r = hand_func_R.rot(3, 90 * M_PI / 180, 3) * hand_func_R.rot(1, -65 * M_PI / 180, 3);
+    }
+    else if (scenario == "Like")
+    {
+        r_middle_r << 0.15, 0.1, -0.3; // Like
+        r_target_r << 0.25, 0.05, -0.25;
+        R_target_r = hand_func_R.rot(2, -90 * M_PI / 180, 3);
     }
     else if (scenario == "Respect")
     {

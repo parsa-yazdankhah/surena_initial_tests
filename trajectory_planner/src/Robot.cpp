@@ -133,7 +133,7 @@ void Robot::spinOnline(double config[], double jnt_vel[], Vector3d torque_r, Vec
         if (robot_cs == WALK)
         {
             bumpSensorCalibrated_ = true;
-            runFootLenController(f_l, f_r, robot_cs);
+            // runFootLenController(f_l, f_r, robot_cs);
 
             runBumpFootOrientController(bump_r, bump_l);
 
@@ -932,9 +932,9 @@ void Robot::getDCMTrajJointAngs(int index, double config[12], double jnt_vel[12]
     ControlState robot_cs = WALK;
     currentRobotPhase_ = anklePlanner_->getStateIndicator();
 
-    cout << currentCommandedCoMPos_(0) << ", " << currentCommandedCoMPos_(1) << ", " << currentCommandedCoMPos_(2) << ", ";
-    cout << currentCommandedLeftAnklePos_(0) << ", " << currentCommandedLeftAnklePos_(1) << ", " << currentCommandedLeftAnklePos_(2) << ", ";
-    cout << currentCommandedRightAnklePos_(0) << ", " << currentCommandedRightAnklePos_(1) << ", " << currentCommandedRightAnklePos_(2) << endl;
+    // cout << currentCommandedCoMPos_(0) << ", " << currentCommandedCoMPos_(1) << ", " << currentCommandedCoMPos_(2) << ", ";
+    // cout << currentCommandedLeftAnklePos_(0) << ", " << currentCommandedLeftAnklePos_(1) << ", " << currentCommandedLeftAnklePos_(2) << ", ";
+    // cout << currentCommandedRightAnklePos_(0) << ", " << currentCommandedRightAnklePos_(1) << ", " << currentCommandedRightAnklePos_(2) << endl;
         
     this->spinOnline(robot_config, robot_jnt_vel, right_torque, left_torque, right_ft[0], left_ft[0],
                      Vector3d(gyro[0], gyro[1], gyro[2]), Vector3d(accelerometer[0], accelerometer[1], accelerometer[2]),
@@ -1060,6 +1060,10 @@ bool Robot::getJointAngs(int iter, double config[12], double jnt_vel[12], double
                 zmp_iter = iter - trajSizes_[traj_index - 1];
             currentZMPPos_ = zmpd_[zmp_iter];
         }
+
+        // cout << currentCommandedCoMPos_(0) << ", " << currentCommandedCoMPos_(1) << ", " << currentCommandedCoMPos_(2) << ", ";
+        // cout << currentCommandedLeftAnklePos_(0) << ", " << currentCommandedLeftAnklePos_(1) << ", " << currentCommandedLeftAnklePos_(2) << ", ";
+        // cout << currentCommandedRightAnklePos_(0) << ", " << currentCommandedRightAnklePos_(1) << ", " << currentCommandedRightAnklePos_(2) << endl;  
 
         this->spinOnline(robot_config, robot_jnt_vel, right_torque, left_torque, right_ft[0], left_ft[0],
                          Vector3d(gyro[0], gyro[1], gyro[2]), Vector3d(accelerometer[0], accelerometer[1], accelerometer[2]),
