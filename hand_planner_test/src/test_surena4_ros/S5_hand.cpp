@@ -252,7 +252,7 @@ MatrixXd S5_hand::ObjToNeck(double h_pitch, double h_roll, double h_yaw) {
     T0.resize(4, 4);
     T0 << cos(M_PI / 9), 0, sin(M_PI / 9), 0, 0, 1, 0, 0, -sin(M_PI / 9), 0, cos(M_PI / 9), 0, 0, 0, 0, 1;
     T1 = trans(Vector3d(camera[0], camera[1], camera[2]));
-    T2 = rot(1, h_roll, 4) * trans(Vector3d(0, 0, head_PtoR));
+    T2 = trans(Vector3d(0, 0, head_PtoR)) * rot(1, h_roll, 4);
     T3 = rot(2, h_pitch, 4);
     T4 = rot(3, h_yaw, 4) * trans(Vector3d(0, 0, head_YtoP));
     T5 = trans(Vector3d(Shoulder2Head[0], Shoulder2Head[1], Shoulder2Head[2]));
@@ -263,8 +263,32 @@ MatrixXd S5_hand::ObjToNeck(double h_pitch, double h_roll, double h_yaw) {
 }
 
 MatrixXd S5_hand::returnAngles(MatrixXd T_EEtobase) {
-    // ... This function was empty in the original code, preserved as is ...
-    return MatrixXd::Zero(1,1); // Placeholder return
+    
+    MatrixXd output;
+    double theta_pitch, sai_roll, phi_yaw;
+    output.resize(3,1);
+
+    if (T_EEtobase(2, 0) != 1 && T_EEtobase(2, 0) != -1)
+    {
+        theta_pitch = -asin(T_EEtobase(2, 0));
+        sai_roll = atan2(T_EEtobase(2, 1) / cos(theta_pitch), T_EEtobase(2, 2) / cos(theta_pitch));
+        phi_yaw = atan2(T_EEtobase(1, 0) / cos(theta_pitch), T_EEtobase(0, 0) / cos(theta_pitch));
+    }
+    else{
+            phi_yaw = 0;
+            if (T_EEtobase(2, 0) != -1)
+            {
+                theta_pitch = M_PI / 2;
+                sai_roll = atan2(T_EEtobase(0, 1), T_EEtobase(0, 2));
+            }
+            else{
+                theta_pitch = -M_PI / 2;
+                sai_roll = atan2(-T_EEtobase(0, 1), -T_EEtobase(0, 2));
+                }
+    }
+    output<< phi_yaw,sai_roll,theta_pitch;
+    return output;
+
 }
 
 // --- WRIST IK ---
@@ -277,7 +301,7 @@ VectorXd S5_hand::solveQuadratic(double a, double b, double c) {
     } else {
         // Return real part if complex, though this case might need specific handling
         Roots(0) = -b / (2 * a);
-        Roots(1) = -b / (2 * a);
+        Roots(1) = sqrt(-discriminant) / (2 * a);
     }
     return Roots;
 }
@@ -296,8 +320,10 @@ double S5_hand::wrist_right_calc(double alpha, double beta) {
     double N1 = pow(a1,2)+pow(h1_A1.norm(),2)+pow(c1,2)-pow(b1,2)-2*c1*h1_A1(1);
     VectorXd Roots = solveQuadratic(N1-K1, 2*M1, K1+N1);
     Vector2d result(atan(Roots(0))*2*180/M_PI, atan(Roots(1))*2*180/M_PI);
-    if(result(0)<0 && result(1)<0 ){ result = -result; }
-    else{ result = result - Vector2d(180,180); }
+    if(result(0)<0 && result(1)<0 ){
+        result = -result; }
+    else{
+        result = result - Vector2d(180,180); }
     double tempRes = (abs(result(0)) < abs(result(1))) ? result(0) : result(1);
     
     if (abs(tempRes) >= wrist_clip_value){
@@ -335,16 +361,19 @@ double S5_hand::move2pose(double max, double t_local, double T_start, double T_e
     double c4 = -(15 * max) / pow(T_move, 4);
     double c5 = (6 * max) / pow(T_move, 5);
     double theta = 0;
-    if (t_local < T_start) { theta = 0; }
-    else if (t_local < T_end) { theta = c3 * pow(t_local - T_start, 3) + c4 * pow(t_local - T_start, 4) + c5 * pow(t_local - T_start, 5); }
-    else { theta = max; }
+    if (t_local < T_start) { 
+        theta = 0; }
+    else if (t_local < T_end) { 
+        theta = c3 * pow(t_local - T_start, 3) + c4 * pow(t_local - T_start, 4) + c5 * pow(t_local - T_start, 5); }
+    else { 
+        theta = max; }
     return theta;
 }
 
 void S5_hand::SendGazebo(vector<double> q) {
     ros::NodeHandle nh;
     vector<ros::Publisher> pubs;
-    for (int i = 1; i <= 29; ++i) {
+    for (int i = 0; i < 29; ++i) {
         pubs.push_back(nh.advertise<std_msgs::Float64>("surenaVgazebo/joint" + to_string(i) + "_position_controller/command", 100));
     }
     std_msgs::Float64 data;

@@ -124,7 +124,6 @@ private:
     double distance(VectorXd V1, VectorXd V2);
     double velocity(double d, double d0);
     double phi_calc(MatrixXd R), theta_calc(MatrixXd R), sai_calc(MatrixXd R);
-    Vector3d euler_calc(MatrixXd R);
     VectorXd solveQuadratic(double a, double b, double c);
     double wrist_pos2mot(double pos);
 };
