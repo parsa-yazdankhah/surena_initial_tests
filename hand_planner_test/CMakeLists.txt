@@ -157,9 +157,9 @@ include_directories(
 #target_link_libraries(hand_trajectory ${catkin_LIBRARIES})
 #add_dependencies(hand_trajectory hand_planner_test_gencpp)
 
-add_executable(hand_gripOnline src/test_surena4_ros/gripOnline.cpp src/test_surena4_ros/S5mod_right_hand.cpp src/test_surena4_ros/S5mod_left_hand.cpp src/test_surena4_ros/MinimumJerkInterpolation.cpp)
-target_link_libraries(hand_gripOnline ${catkin_LIBRARIES})
-add_dependencies(hand_gripOnline hand_planner_test_gencpp)
+add_executable(hand_manager_node src/test_surena4_ros/HandManager.cpp src/test_surena4_ros/S5_hand.cpp src/test_surena4_ros/S5_hand_jacobian.cpp src/test_surena4_ros/MinimumJerkInterpolation.cpp)
+target_link_libraries(hand_manager_node ${catkin_LIBRARIES})
+add_dependencies(hand_manager_node hand_planner_test_gencpp)
 
 #add_executable(CAMERA_AI src/test_surena4_ros/camera_ai_node.cpp)
 #target_link_libraries(CAMERA_AI ${catkin_LIBRARIES})
