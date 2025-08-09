@@ -88,6 +88,7 @@ void S5_hand::update_hand(VectorXd q_in, VectorXd r_target, MatrixXd R_target, d
 }
 
 // --- KINEMATICS & CONTROL ---
+// Calculate the Homogeneous Transformation for the palm using Forward Kinematics
 void S5_hand::HO_FK_palm(VectorXd q_in) {
     R1_fix_shd.resize(4, 4); R2_fix_shd.resize(4, 4);
     R1_ra.resize(4, 4); R2_ra.resize(4, 4); R3_ra.resize(4, 4);

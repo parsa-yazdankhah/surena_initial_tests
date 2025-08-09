@@ -15,9 +15,6 @@
 using namespace Eigen;
 using namespace std;
 
-// Forward declaration for the Jacobian function. The implementation will be in S5_hand_jacobian.cpp
-void calculate_jacobian(const VectorXd& q_in, double angle_fix_shd, MatrixXd& J_palm, MatrixXd& J_w_palm);
-
 // Enum to specify which hand the instance represents
 enum HandType {
     RIGHT,
@@ -28,6 +25,8 @@ class S5_hand {
 public:
     // --- CONSTRUCTOR ---
     S5_hand(HandType type); // Main constructor to set the hand type
+
+    HandType hand_type; // Stores whether the instance is RIGHT or LEFT
 
     // --- PUBLIC MEMBER VARIABLES ---
     // Physical Parameters
@@ -71,6 +70,9 @@ public:
     void HO_FK_palm(VectorXd q_in);
     void doQP(VectorXd q_in);
 
+    // Forward declaration for the Jacobian function. The implementation will be in S5_hand_jacobian.cpp
+    void calculate_jacobian(const VectorXd& q_in, double angle_fix_shd, MatrixXd& J_palm, MatrixXd& J_w_palm);
+
     // Utility & Transformation Functions
     double toRad(double d);
     MatrixXd rot(int axis, double q, int dim);
@@ -90,8 +92,6 @@ public:
 
 private:
     // --- PRIVATE MEMBER VARIABLES ---
-    HandType hand_type; // Stores whether the instance is RIGHT or LEFT
-
     // Hand-specific parameters set by the constructor
     double angle_fix_shd;
     vector<double> minimum;
