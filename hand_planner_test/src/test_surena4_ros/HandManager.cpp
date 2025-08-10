@@ -43,12 +43,24 @@ HandManager::HandManager(ros::NodeHandle *n) :
     move_hand_both_service = n->advertiseService("move_hand_both_srv", &HandManager::both_hands, this);
     grip_online_service = n->advertiseService("grip_online_srv", &HandManager::grip_online, this);
     home_service = n->advertiseService("home_srv", &HandManager::home, this);
+    set_target_class_service = n->advertiseService("set_target_class_srv", &HandManager::setTargetClassService, this);
 }
 
-// --- ROS Callback Implementations ---
+// --- Object Detection Callback Implementations ---
+bool HandManager::setTargetClassService(hand_planner_test::SetTargetClass::Request &req, hand_planner_test::SetTargetClass::Response &res) {
+        // Look up class ID from JSON
+        string object_classes_path = ros::package::getPath("hand_planner_test") + "/config/object_classes.json";
+        std::ifstream fr(object_classes_path);
+        json object_classes = json::parse(fr);
+        target_class_id_ = object_classes[req.class_name];    
+        res.class_id = target_class_id_;
+        return true;
+}
+
 void HandManager::object_detect_callback(const hand_planner_test::DetectionInfoArray &msg) {
+    std::lock_guard<std::mutex> lock(target_mutex_);
     for (size_t i = 0; i < msg.detections.size(); ++i) {
-        if (msg.detections[i].class_id == 41) { // class_id for "cup"
+        if (msg.detections[i].class_id == target_class_id_) {
             double dist = msg.detections[i].distance / 1000.0;
             double y_pixel = msg.detections[i].x + msg.detections[i].width / 2.0;
             double z_pixel = msg.detections[i].y + msg.detections[i].height / 2.0;

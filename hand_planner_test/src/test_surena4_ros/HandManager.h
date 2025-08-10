@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef HAND_MANAGER_H
 #define HAND_MANAGER_H
 
@@ -8,7 +10,10 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include "ros/ros.h"
+#include <fstream> 
+#include <ros/ros.h>
+#include <ros/package.h>
+#include "json.hpp"
 
 // ROS Message and Service Includes
 #include <std_msgs/Int32MultiArray.h>
@@ -17,9 +22,11 @@
 #include "hand_planner_test/move_hand_both.h"
 #include "hand_planner_test/gripOnline.h"
 #include "hand_planner_test/home_service.h"
+#include "hand_planner_test/SetTargetClass.h"
 
 using namespace std;
 using namespace Eigen;
+using json = nlohmann::json;
 
 class HandManager {
 public:
@@ -35,6 +42,7 @@ private:
     ros::ServiceServer move_hand_both_service;
     ros::ServiceServer grip_online_service;
     ros::ServiceServer home_service;
+    ros::ServiceServer set_target_class_service;
 
     // --- CORE OBJECTS ---
     S5_hand hand_func_R;
@@ -70,6 +78,8 @@ private:
     double h_pitch, h_roll, h_yaw;
     double Kp, Ky;
     double t_grip;
+    int target_class_id_ = 41; // Default: "cup"
+    std::mutex target_mutex_;
 
     // --- ROS CALLBACKS (Declarations) ---
     void object_detect_callback(const hand_planner_test::DetectionInfoArray &msg);
@@ -84,6 +94,7 @@ private:
     bool both_hands(hand_planner_test::move_hand_both::Request &req, hand_planner_test::move_hand_both::Response &res);
     bool home(hand_planner_test::home_service::Request &req, hand_planner_test::home_service::Response &res);
     bool grip_online(hand_planner_test::gripOnline::Request &req, hand_planner_test::gripOnline::Response &res);
+    bool setTargetClassService(hand_planner_test::SetTargetClass::Request &req, hand_planner_test::SetTargetClass::Response &res);
 };
 
 #endif // HAND_MANAGER_H

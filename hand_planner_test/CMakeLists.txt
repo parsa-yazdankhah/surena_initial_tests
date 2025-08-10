@@ -64,6 +64,7 @@ find_package(catkin REQUIRED COMPONENTS
    move_hand_both.srv
    gripOnline.srv
    home_service.srv
+   SetTargetClass.srv
  )
 
 ## Generate actions in the 'action' folder
