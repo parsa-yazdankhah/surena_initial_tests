@@ -52,8 +52,13 @@ bool HandManager::setTargetClassService(hand_planner_test::SetTargetClass::Reque
         string object_classes_path = ros::package::getPath("hand_planner_test") + "/config/object_classes.json";
         std::ifstream fr(object_classes_path);
         json object_classes = json::parse(fr);
-        target_class_id_ = object_classes[req.class_name];    
-        res.class_id = target_class_id_;
+        if (!object_classes.contains(req.class_name)) {
+            ROS_ERROR("Class name '%s' not found in object_classes.json!", req.class_name.c_str());
+            res.class_id = -1;
+        } else {
+            target_class_id_ = object_classes[req.class_name];    
+            res.class_id = target_class_id_;
+        }
         return true;
 }
 
